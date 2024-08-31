@@ -10,15 +10,18 @@ const todos = {
     done: [{ id: "frb", title: 'Done 1' }, { id: "bhj", title: 'Done 2' }]
 }
 
-const moveItem = (item, from, to) => {
-    // console.log(todos[from],todos[to]);
-    const itemtoInsert = todos[from][item];
-    if(todos[from].length==1){
-        todos[from] = []
-    }else{
-        todos[from] = todos[from].splice(item, 1);
+const findItemIndex = (item, list) => {
+    for(let i=0; i<list.length; i++){
+        if(list[i].id == item){
+            return i;
+        }
     }
+}
 
+const moveItem = (item, from, to) => {
+    const itemIndex = findItemIndex(item, todos[from]);
+    const itemtoInsert = todos[from][itemIndex];
+    todos[from].splice(itemIndex, 1);
     todos[to].push(itemtoInsert);
 }
 
@@ -27,20 +30,20 @@ const moveItem = (item, from, to) => {
 
 
 const renderList = () => {
-    let Listitem =(item,disabled,from,right,left,index)=> (`
+    let Listitem =(item,disabled,from,right,left)=> (`
         <div class="item" id="${item.id}">
             <div class="item-title">${item.title}</div>
                 <div class="item-controls">
-                    <button class="move-left" ${disabled=='left'?'disabled':''} index="${index}" from="${from}" to="${left}"> <- </button>
-                    <button class="move-right" ${disabled=='right'?'disabled':''} index="${index}"  from="${from}" to="${right}"> -> </button>
+                    <button class="move-left" ${disabled=='left'?'disabled':''} index="${item.id}" from="${from}" to="${left}"> ← </button>
+                    <button class="move-right" ${disabled=='right'?'disabled':''} index="${item.id}"  from="${from}" to="${right}"> → </button>
                 </div>
         </div>
     `)
     
-    backlogItems = todos.backlog.reduce((acc, item,index) => acc + Listitem(item,'left','backlog','todo','',index), '');
-    todoItems = todos.todo.reduce((acc, item,index) => acc + Listitem(item,'','todo','ongoing','backlog',index), '');
-    ongoingItems = todos.ongoing.reduce((acc, item,index) => acc + Listitem(item,'','ongoing','done','todo',index), '');
-    doneItems = todos.done.reduce((acc, item,index) => acc + Listitem(item,'right','done','','ongoing',index), '');
+    backlogItems = todos.backlog.reduce((acc, item) => acc + Listitem(item,'left','backlog','todo',''), '');
+    todoItems = todos.todo.reduce((acc, item) => acc + Listitem(item,'','todo','ongoing','backlog'), '');
+    ongoingItems = todos.ongoing.reduce((acc, item) => acc + Listitem(item,'','ongoing','done','todo'), '');
+    doneItems = todos.done.reduce((acc, item) => acc + Listitem(item,'right','done','','ongoing'), '');
 
     
     backlog.innerHTML = backlogItems;
@@ -52,7 +55,6 @@ const renderList = () => {
     buttons.forEach(button => {
         button.addEventListener('click', (e) => {
             const { from, to, index } = e.target.attributes;
-            console.log(from, to,index);
             moveItem(index.value, from.value, to.value);
 
             renderList();
